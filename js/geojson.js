@@ -10,7 +10,7 @@ function createMap() {
 
     //add OSM base tilelayer
    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-   attribution: 'Data: U.S. Coast Guard</a>, Design - Carlos M. Crespo, 2018; Map: <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+   attribution: 'Data: U.S. Coast Guard</a>, Design - Carlos M. Crespo, 2018; Map: <a href="http://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>'
    }).addTo(map);
 
    //call getData function
@@ -243,13 +243,13 @@ function createLegend(map, attributes){
             $(container).append('<div id="temporal-legend">')
             
             //start attribute legend svg string
-            var svg = '<svg id="attribute-legend" width="160px" height="60px">';
+            var svg = '<svg id="attribute-legend" width="260px" height="260px">';
             
             //array of circle names to base loop
             var circles = {
-                max: 15,
-                mean: 35,
-                min: 55
+                max: 45,
+                mean: 70,
+                min: 95
             };
             
             //loop to add each circle and text to svg string
@@ -293,7 +293,7 @@ function updateLegend (map, attributes){
         var radius = calcPropRadius(circleValues[key]);
         
         $('#'+key).attr({
-            cy: 59 - radius,
+            cy: 100 - radius,
             r: radius
         });
         
@@ -336,8 +336,43 @@ function getCircleValues(map, attributes){
     };
 };
 
+//create symbology for polygon symbols
+function createBoundarySymbols(data, map, boundary){
+    L.geoJson(data, {
+        });
+    
+    //assign symbology values for polygons 
+    var cotpZones = L.geoJson(data, {
+        fillColor: "red",
+        color: "black",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.15,
+        interactive: false        
+    });
+    //assign polygon layer to overlay variable
+    var boundaries = {
+        "<span style='color: darkred'>Turn on Captain of the Port Boundaries": cotpZones
+    };
+    
+    //control for COTP zones boundaries
+    L.control.layers(null, boundaries,{collapsed:false}).addTo(map);
+
+    return map
+};
+
 //function to retrieve the data and place it on the map
 function getData(map){
+    //load polygon geoJSON
+    $.ajax("data/sectorBoundaries.geojson", {
+        dataType: "json",
+        success: function(response){
+
+            var boundary = [];
+            createBoundarySymbols(response, map, boundary);
+        }
+    });
+    
     //load the data
     $.ajax("data/sarCases.geojson", {
         dataType: "json",
@@ -348,7 +383,7 @@ function getData(map){
             createPropSymbols(response, map, attributes);  
             createSequenceControls(map, attributes);             
         }
-    });
+    });        
 };
 
 $(document).ready(createMap);
